@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -10,6 +10,7 @@ public class GameHandler {
     private ArrayList<Card> drawDeck;
     private ArrayList<Card> discardPile;
     private ArrayList<Enemy> enemies;
+    private ArrayList<List<String>> intentions;
     private Boolean canDraw = true;
     private Boolean attackTwice = false;
 
@@ -23,6 +24,8 @@ public class GameHandler {
     public GameHandler() {
         player = Player.getInstance();
         drawDeck = player.getCards();
+        enemies = new ArrayList<>();
+        discardPile = new ArrayList<>();
     }
 
     public void showGameStatus() {
@@ -39,7 +42,7 @@ public class GameHandler {
         enemyFactory.cleanup();
     }
 
-    public void combat(){
+    public void combat() throws InterruptedException {
         int turn = 1;
         drawDeck = player.getCards();
         int numOfEnemies = (int)(Math.random() * 3 + 1);
@@ -54,41 +57,122 @@ public class GameHandler {
         while(player.alive() && !enemiesDead()){
             playerTurn(turn);
             enemyTurn(turn);
+            resetStats();
             turn++;
         }
     }
 
-    private void playerTurn(int turn){
+    private void showEnemies(int turn, int maxIntention){
+        ArrayList<List<String>> enemyBoxes = new ArrayList<>();
+        for(Enemy enemy : enemies){
+            enemyBoxes.add(enemy.getStatsBox());
+        }
+        for(int i = 0; i < enemyBoxes.getFirst().size(); i++){
+            StringBuilder line = new StringBuilder();
+            for (List<String> enemyBox : enemyBoxes)
+                line.append(enemyBox.get(i)).append(' ');
+            System.out.println(line);
+        }
+        for(int i = 0; i < maxIntention; i++) {
+            StringBuilder line = new StringBuilder();
+            for (int j = 0; j < intentions.size(); j++){
+                if (i < intentions.get(j).size())
+                    line.append(intentions.get(j).get(i)).append(' ');
+                else
+                    line.append(String.format("%-28s", ""));
+            }
+            System.out.println(line);
+        }
+    }
+
+    private void playerTurn(int turn) throws InterruptedException{
         boolean endTurn = false;
         for(int i = 0; i < 5; i++)
             drawCard();
+        intentions = new ArrayList<>();
+        int maxIntention = -1;
+        for (Enemy enemy : enemies) {
+            List<String> intention = enemy.getIntensionsBox(turn);
+            maxIntention = Math.max(maxIntention, intention.size());
+            intentions.add(intention);
+        }
+
         while(!endTurn){
-            for(Enemy enemy : enemies)
-                enemy.intention(turn);
-            for(Card card : player.getHand())
-                System.out.println(card);
+            showEnemies(turn, maxIntention);
+
+            ArrayList<List<String>> cardBoxes = new ArrayList<>();
+            int maxCardHeight = -1;
+            for(Card card : player.getHand()){
+                List<String> cardBox = card.getCardBox();
+                maxCardHeight = Math.max(maxCardHeight, cardBox.size());
+                cardBoxes.add(cardBox);
+            }
+            for(int i = 0; i < maxCardHeight; i++){
+                StringBuilder line = new StringBuilder();
+                for (List<String> cardBox : cardBoxes)
+                    if (i < cardBox.size())
+                        line.append(cardBox.get(i)).append(' ');
+                    else
+                        line.append(String.format("%-19s", ""));
+                System.out.println(line);
+            }
+
+
+            /*for(Card card : player.getHand())
+                System.out.println(card);*/
 
             System.out.println(player);
-            System.out.println("Choose a card or end your turn [#no_of_card / end]");
+            System.out.println("Choose an option:");
+            System.out.println(" -> Play a card\t\t\t[#no_of_card]");
+            System.out.println(" -> Show draw deck\t\t[draw]");
+            System.out.println(" -> Show discard pile\t[discard]");
+            System.out.println(" -> End your turn\t\t[end]");
             Scanner in = new Scanner(System.in);
             String input = in.next();
             try{
                 int carte = Integer.parseInt(input);
+                if(carte < 1 || carte > player.getHand().size()){
+                    System.out.println("Not a valid imput!");
+                    Thread.sleep(1000);
+                }
                 Card chosenCardToPlay = player.getHand().get(carte - 1);
+                if(chosenCardToPlay.getCost() > player.getMana()){
+                    System.out.println("Not enough mana!");
+                    Thread.sleep(1000);
+                    continue;
+                }
                 discardPile.add(chosenCardToPlay);
                 int enemyToAttack = 1;
                 if(chosenCardToPlay instanceof AttackCard){
-                    System.out.println("Which enemy to attack? [1..no_of_enemies]\n");
+                    System.out.println("Which enemy to attack? [1..no_of_enemies]");
                     enemyToAttack = in.nextInt();
                 }
-                playCard(chosenCardToPlay, enemies.get(enemyToAttack - 1));
-                player.chooseCardToPlay(chosenCardToPlay);
+                playCard(chosenCardToPlay, enemyToAttack - 1);
+                player.consumeCard(chosenCardToPlay);
+                player.setMana(player.getMana() - chosenCardToPlay.getCost());
             }
             catch(NumberFormatException e){
-                if(input.equals("end")) {
-                    endTurn = true;
-                    canDraw = true;
-                    attackTwice = false;
+                switch(input) {
+                    case "end":
+                        endTurn = true;
+                        canDraw = true;
+                        attackTwice = false;
+                        break;
+                    case "draw":
+                        for(Card card : drawDeck)
+                            System.out.println(card);
+                        System.out.println("Go back [exit]");
+                        while(!in.next().equals("exit"));
+                        break;
+                    case "discard":
+                        for(Card card : discardPile)
+                            System.out.println(card);
+                        System.out.println("Go back [exit]");
+                        while(!in.next().equals("exit"));
+                        break;
+                    default:
+                        System.out.println("Not a valid input!");
+                        break;
                 }
             }
         }
@@ -115,13 +199,25 @@ public class GameHandler {
         enemies = aux;
     }
 
-    private void playCard(Card card, Enemy enemy){
-        card.play(player, enemy);
+    private void resetStats(){
+        player.setMana(player.getMaxMana());
+        for(Card card:player.getHand()){
+            discardPile.add(card);
+            player.consumeCard(card);
+        }
+        player.setDefense(0);
+        for(Enemy enemy:enemies){
+            enemy.setDefense(0);
+        }
+    }
+
+    private void playCard(Card card, int enemyPosition){
+        card.play(player, enemies.get(enemyPosition));
         if(card.isExhausting()){
             discardPile.remove(card);
         }
         if(card instanceof AttackCard && attackTwice){
-            card.play(player, enemy);
+            card.play(player, enemies.get(enemyPosition));
             attackTwice = false;
         }
         switch(card.getName()){
@@ -145,6 +241,11 @@ public class GameHandler {
                 attackTwice = true;
                 break;
         }
+        if(enemies.get(enemyPosition).getHP() < 0){
+            enemies.remove(enemyPosition);
+            intentions.remove(enemyPosition);
+        }
+
     }
 
     private void drawCard(){

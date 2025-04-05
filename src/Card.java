@@ -1,3 +1,5 @@
+import java.util.List;
+
 public abstract class Card {
     protected String name;
     protected String description;
@@ -48,4 +50,5 @@ public abstract class Card {
 
     public abstract Card clone();
     public abstract void play(Player p, Enemy e);
+    public abstract List<String> getCardBox();
 }

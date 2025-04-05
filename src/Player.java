@@ -1,6 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 public class Player extends Entity {
     private static Player instance;
@@ -10,9 +8,18 @@ public class Player extends Entity {
     private ArrayList<Card> cards;
     private CardFactory cardFactory;
 
+    public int getMana() {
+        return mana;
+    }
+
+    public void setMana(int mana) {
+        this.mana = mana;
+    }
+
     private Player() {
-        super("John", 50, 0);
+        super("John", 100, 0);
         this.mana = 3;
+        this.currHand = new ArrayList<>();
         cards = new ArrayList<>();
         for(int i = 0; i < 5; i++)
             addCard(CardType.STRIKE);
@@ -33,17 +40,21 @@ public class Player extends Entity {
                 "        🛡️ " + name + " 🛡️\n" +
                 "============================\n" +
                 "  ❤ HP    : " + hp + "\n" +
-                ((defense > 0)?("  ⛊ Defense : " + defense + "\n"):"") +
+                "  ⛊ Defense : " + defense + "\n" +
                 "  ★ Mana  : " + mana + " / " + maxMana + "\n" +
                 "============================\n";
     }
 
     public ArrayList<Card> getHand() {
-        ArrayList<Card> returnHand = new ArrayList<>();
+        /*ArrayList<Card> returnHand = new ArrayList<>();
         for (Card card : currHand) {
             returnHand.add(card.clone());
-        }
-        return returnHand;
+        }*/
+        return (ArrayList<Card>)currHand.clone();
+    }
+
+    public int getMaxMana(){
+        return maxMana;
     }
 
     public ArrayList<Card> getCards() {
@@ -58,7 +69,7 @@ public class Player extends Entity {
         currHand.add(card);
     }
 
-    public void chooseCardToPlay(Card card) {
+    public void consumeCard(Card card) {
         currHand.remove(card);
     }
 
@@ -66,5 +77,9 @@ public class Player extends Entity {
         cardFactory = new CardFactory(type);
         cards.add(cardFactory.getCard());
         cardFactory.cleanup();
+    }
+
+    public void setDefense(int amount){
+        this.defense = amount;
     }
 }

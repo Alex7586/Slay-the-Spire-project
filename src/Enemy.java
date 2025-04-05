@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Enemy extends Entity {
     private int damage;
     private double probability = 1;
@@ -50,11 +53,12 @@ public class Enemy extends Entity {
     public String intention(int turn){
         StringBuilder builder = new StringBuilder();
         builder.append(this).append("Intentions:\n");
+        builder.append("Intentions:\n");
         switch(name){
             case "Cultist":{
                 builder.append("Deal ")
                         .append(damage)
-                        .append(" damage\n");
+                        .append(" damage.\n");
                 break;
             }
             case "Jaw Worm":{
@@ -62,7 +66,7 @@ public class Enemy extends Entity {
                     //Chomp
                     builder.append("Deal ")
                             .append(damage)
-                            .append(" damage\n");
+                            .append(" damage.\n");
                     break;
                 }
                 probability = Math.random();
@@ -70,44 +74,44 @@ public class Enemy extends Entity {
                 if(probability < 0.525){
                     builder.append("Deal ")
                             .append(damage-3)
-                            .append(" damage\n");
-                    builder.append("Gain 5 defense\n");
+                            .append(" damage.\n");
+                    builder.append("Gain 5 defense.\n");
                     break;
                 }
                 //Chomp
                 builder.append("Deal ")
                         .append(damage)
-                        .append(" damage\n");
+                        .append(" damage.\n");
                 break;
             }
             case "Louse":{
                 builder.append("Deal ")
                         .append(damage)
-                        .append(" damage\n");
+                        .append(" damage.\n");
                 if(curlUpBlock != 0){
                     builder.append("Gain ")
                             .append(curlUpBlock)
-                            .append(" block upon first receiving attack damage\n");
+                            .append(" block upon first\nreceiving attack damage.\n");
                 }
                 break;
             }
             case "Acid Slime (L)", "Acid Slime (M)":{
                 if(name.equals("Acid Slime (L)") && hp < 0.5 * maxHP){
-                    builder.append("Dies and spawn 2 Acid Slimes (M)");
+                    builder.append("Dies and spawn 2 Acid Slimes (M).");
                     break;
                 }
                 probability = Math.random();
                 if(probability < 0.45){
                     builder.append("Deal ")
                             .append(damage - (name.equals("Acid Slime (L)")?5:3))
-                            .append(" damage, shuffles ")
+                            .append(" damage.\nShuffles ")
                             .append(name.equals("Acid Slime (L)")?2:1)
-                            .append(" Slimed into the discard pile\n");
+                            .append(" Slimed into the\ndiscard pile.\n");
                     break;
                 }
                 builder.append("Deal ")
                         .append(damage)
-                        .append(" damage\n");
+                        .append(" damage.\n");
                 break;
             }
         }
@@ -115,10 +119,46 @@ public class Enemy extends Entity {
         return builder.toString();
     }
 
+    public List<String> getStatsBox() {
+        List<String> lines = new ArrayList<>();
+        String border = "============================";
+        String centeredName = String.format("%-28s", String.format("%" + (14 + name.length()/2) + "s", name));
+        lines.add(border);
+        lines.add(centeredName);
+        lines.add(border);
+        lines.add(String.format("  ❤ HP    : %-14s", hp));
+        if (defense > 0) {
+            lines.add(String.format("  ⛊ Defense : %-14s", defense));
+        } else {
+            lines.add(String.format("  %-24s", "")); // blank line for alignment
+        }
+        lines.add(border);
+        return lines;
+    }
+
+    public List<String> getIntensionsBox(int turn){
+        List<String> lines = new ArrayList<>();
+        String[] parts = intention(turn).split("\n");
+        for(String part : parts){
+            lines.add(String.format("%-28s", part));
+        }
+        return lines;
+    }
+
+    public void setDefense(int amount){
+        this.defense = amount;
+    }
+
     @Override
     public String toString() {
+        String fancyName = "🛡️ " + name + " 🛡️";
+        int padding = (28 - fancyName.length())/2;
+        StringBuilder centeredName = new StringBuilder();
+        centeredName.repeat(" ", padding);
+        centeredName.append(fancyName).append('\n');
+
         return "============================\n" +
-                "        🛡️ " + name + " 🛡️\n" +
+                centeredName +
                 "============================\n" +
                 "  ❤ HP    : " + hp + "\n" +
                 ((defense > 0)?("  ⛊ Defense : " + defense + "\n"):"") +
@@ -144,7 +184,7 @@ public class Enemy extends Entity {
 
     @Override
     public void takeDamage(int damage) {
-        if(name.equals("Louse") && curlUpBlock == 0){
+        if(name.equals("Louse") && curlUpBlock != 0){
             super.takeDamage(damage);
             this.defense += curlUpBlock;
             curlUpBlock = 0;

@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class SkillCard extends Card {
     private int block;
 
@@ -57,6 +60,16 @@ public class SkillCard extends Card {
 
     @Override
     public void play(Player player, Enemy enemy) {
-        enemy.gainDefense(block);
+        player.gainDefense(block);
+    }
+
+    @Override
+    public List<String> getCardBox(){
+        List<String> lines = new ArrayList<>();
+        String[] parts = toString().split("\n");
+        for(String part : parts){
+            lines.add(String.format("%-19s", part));
+        }
+        return lines;
     }
 }

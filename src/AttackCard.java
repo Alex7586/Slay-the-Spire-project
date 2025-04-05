@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class AttackCard extends Card {
     private int damage;
 
@@ -60,5 +63,15 @@ public class AttackCard extends Card {
     @Override
     public void play(Player player, Enemy enemy) {
         enemy.takeDamage(damage);
+    }
+
+    @Override
+    public List<String> getCardBox(){
+        List<String> lines = new ArrayList<>();
+        String[] parts = toString().split("\n");
+        for(String part : parts){
+            lines.add(String.format("%-19s", part));
+        }
+        return lines;
     }
 }

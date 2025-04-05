@@ -15,11 +15,11 @@ public class EnemyFactory {
                     (int)(Math.random() * 6 + 10),
                     0,
                     (int)(Math.random() * 3 + 5));
-            case ACID_SLIME_L -> new Enemy("Acid Slime L",
+            case ACID_SLIME_L -> new Enemy("Acid Slime (L)",
                     (int)(Math.random() * 5 + 65),
                     0,
                     16);
-            case ACID_SLIME_M -> new Enemy("Acid Slime M",
+            case ACID_SLIME_M -> new Enemy("Acid Slime (M)",
                     (int)(Math.random() * 5 + 28),
                     0,
                     10);

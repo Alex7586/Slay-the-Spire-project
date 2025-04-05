@@ -9,6 +9,7 @@ public abstract class Entity {
     Entity(String name, int hp, int defense) {
         this.name = name;
         this.hp = this.maxHP = hp;
+        this.defense = defense;
     }
 
     public String getName() {

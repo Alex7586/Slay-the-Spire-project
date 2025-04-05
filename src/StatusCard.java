@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class StatusCard extends Card{
 
     public StatusCard(){}
@@ -15,6 +18,15 @@ public class StatusCard extends Card{
 
     @Override
     public void play(Player p, Enemy e) {
+    }
 
+    @Override
+    public List<String> getCardBox(){
+        List<String> lines = new ArrayList<>();
+        String[] parts = toString().split("\n");
+        for(String part : parts){
+            lines.add(String.format("%-19s", part));
+        }
+        return lines;
     }
 }
