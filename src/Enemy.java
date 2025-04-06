@@ -52,7 +52,6 @@ public class Enemy extends Entity {
 
     public String intention(int turn){
         StringBuilder builder = new StringBuilder();
-        builder.append(this).append("Intentions:\n");
         builder.append("Intentions:\n");
         switch(name){
             case "Cultist":{
