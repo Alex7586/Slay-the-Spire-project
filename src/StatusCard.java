@@ -29,4 +29,32 @@ public class StatusCard extends Card{
         }
         return lines;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(" _________________\n");
+        builder.append("|")
+                .append(cost);
+        builder.append(" ".repeat(10));
+        builder.append("Status|\n");
+        builder.append("|                 |\n");
+        builder.append('|').append(name);
+        builder.append(" ".repeat(17 - name.length()));
+        builder.append("|\n");
+        builder.append("|                 |\n");
+        int left = 0;
+        while(left < description.length()){
+            builder.append('|')
+                    .append(description, left, Math.min(left+17, description.length()));
+            if(left + 17 > description.length())
+                builder.append(" ".repeat(left+17 - description.length()));
+            builder.append("|\n");
+            left += 17;
+        }
+        builder.append("|                 |\n")
+                .append(" \\_______________/\n");
+
+        return builder.toString();
+    }
 }

@@ -1,6 +1,14 @@
 public class EnemyFactory {
     private Enemy enemy;
 
+    public EnemyFactory(EnemyType type, int hp) {
+        if(type == EnemyType.ACID_SLIME_M)
+            enemy = new Enemy("Acid Slime (M)",
+                    hp,
+                    0,
+                    10);
+    }
+
     public EnemyFactory(EnemyType type){
         enemy = switch(type){
             case CULTIST -> new Enemy("Cultist",
@@ -23,7 +31,6 @@ public class EnemyFactory {
                     (int)(Math.random() * 5 + 28),
                     0,
                     10);
-            default -> null;
         };
     }
 

@@ -12,7 +12,6 @@ public abstract class Card {
         this.description = "It does nothing :/";
         this.cost = 0;
     }
-
     public Card(String name, String description, int cost, Boolean exhaust){
         this(name, description, cost, false, exhaust);
     }
@@ -23,12 +22,12 @@ public abstract class Card {
         this.playedOnSomeone = playedOnSomeone;
         this.exhaust = exhaust;
     }
-
     public Card(Card other){
         this.name = other.name;
         this.description = other.description;
         this.cost = other.cost;
         this.exhaust = other.exhaust;
+        this.playedOnSomeone = other.playedOnSomeone;
     }
 
     public String getName(){ return this.name; }

@@ -40,6 +40,7 @@ public class AttackCard extends Card {
         /*for(int i = name.length(); i < 17; i++) builder.append(' ');*/
         builder.append("|\n");
         builder.append("|                 |\n");
+        StringBuilder descriptionEffects = new StringBuilder(description);
         int left = 0;
         while(left < description.length()){
             builder.append('|')
@@ -62,7 +63,10 @@ public class AttackCard extends Card {
 
     @Override
     public void play(Player player, Enemy enemy) {
-        enemy.takeDamage(damage);
+        int dmg = damage + Utility.nvl(player.getEffects().get("Strength"), 0);
+        if(player.getEffects().get("Weak") != null)
+            dmg = (int)(0.75 * dmg);
+        enemy.takeDamage(dmg);
     }
 
     @Override

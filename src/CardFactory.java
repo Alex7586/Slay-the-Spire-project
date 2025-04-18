@@ -11,7 +11,7 @@ public class CardFactory {
                         6,
                         true);
             case BASH -> new AttackCard("Bash",
-                        "Deal 8 damage.",
+                        "Deal 8 damage. Apply 2 Vulnerable.",
                         2,
                         8,
                         true);
@@ -48,7 +48,7 @@ public class CardFactory {
                     "Exhaust",
                     1,
                     true);
-            default -> null;
+            default -> new AttackCard();
         };
     }
 

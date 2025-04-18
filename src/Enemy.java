@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Enemy extends Entity {
-    private int damage;
+    private final int damage;
     private double probability = 1;
     private int curlUpBlock;
 
@@ -15,16 +15,27 @@ public class Enemy extends Entity {
 
     public double getProbability() {return probability;}
 
-    private void Cultist(Player p) {
-        p.takeDamage(damage);
+    private void Cultist(int turn, Player p) {
+        if(turn == 1){
+            applyEffect(3, "Ritual");
+            return;
+        }
+        p.takeDamage(damage + Utility.nvl(effects.get("Strength"),0));
+        applyEffect(3, "Strength");
     }
     private void JawWorm(int turn, Player p) {
         if(turn == 1){
             p.takeDamage(damage);
             return;
         }
+        //Bellow
+        if(probability < 0.45){
+            applyEffect(3,"Strength");
+            this.gainDefense(6);
+            return;
+        }
         //Thrash
-        if(probability < 0.525){
+        if(probability < 0.75){
             p.takeDamage(damage - 3);
             this.gainDefense(5);
             return;
@@ -33,6 +44,10 @@ public class Enemy extends Entity {
         p.takeDamage(damage);
     }
     private void Louse(Player p) {
+        if(probability < 0.25){
+            applyEffect(3, "Strength");
+            return;
+        }
         p.takeDamage(damage);
     }
     private void AcidSlime(Player p) {
@@ -42,8 +57,12 @@ public class Enemy extends Entity {
         }
         if(probability == 1)
             return;
-        if(probability < 0.45){
+        if(probability < 0.3){
             p.takeDamage(damage - (name.equals("Acid Slime (L)")?5:3));
+            return;
+        }
+        if(probability < 0.6){
+            p.applyEffect((name.equals("Acid Slime (L)"))?2:1, "Weak");
             return;
         }
         p.takeDamage(damage);
@@ -55,8 +74,13 @@ public class Enemy extends Entity {
         builder.append("Intentions:\n");
         switch(name){
             case "Cultist":{
+                if(turn == 1){
+                    builder.append("Gains 3 Ritual\n");
+                    break;
+                }
                 builder.append("Deal ")
-                        .append(damage)
+                        .append((damage + Utility.nvl(effects.get("Strength"), 0)) *
+                                (effects.get("Weak") == null ? 1 : 0.75))
                         .append(" damage.\n");
                 break;
             }
@@ -64,57 +88,81 @@ public class Enemy extends Entity {
                 if(turn == 1){
                     //Chomp
                     builder.append("Deal ")
-                            .append(damage)
+                            .append((damage + Utility.nvl(effects.get("Strength"), 0)) *
+                                    (effects.get("Weak") == null ? 1 : 0.75))
                             .append(" damage.\n");
                     break;
                 }
                 probability = Math.random();
+                //Bellow
+                if(probability < 0.45){
+                    builder.append("Gain 3 Strength\nand 6 defense.\n");
+                    break;
+                }
                 //Thrash
-                if(probability < 0.525){
+                if(probability < 0.75){
                     builder.append("Deal ")
-                            .append(damage-3)
+                            .append((damage - 3 + Utility.nvl(effects.get("Strength"), 0)) *
+                                    (effects.get("Weak") == null ? 1 : 0.75))
                             .append(" damage.\n");
                     builder.append("Gain 5 defense.\n");
                     break;
                 }
+
                 //Chomp
                 builder.append("Deal ")
-                        .append(damage)
+                        .append((damage + Utility.nvl(effects.get("Strength"), 0)) *
+                                (effects.get("Weak") == null ? 1 : 0.75))
                         .append(" damage.\n");
                 break;
             }
             case "Louse":{
-                builder.append("Deal ")
-                        .append(damage)
-                        .append(" damage.\n");
                 if(curlUpBlock != 0){
                     builder.append("Gain ")
                             .append(curlUpBlock)
                             .append(" block upon first\nreceiving attack damage.\n");
                 }
+                probability = Math.random();
+                if(probability < 0.25){
+                    builder.append("Gain 3 Strength.\n");
+                    break;
+                }
+                builder.append("Deal ")
+                        .append((damage + Utility.nvl(effects.get("Strength"), 0)) *
+                                (effects.get("Weak") == null ? 1 : 0.75))
+                        .append(" damage.\n");
                 break;
             }
             case "Acid Slime (L)", "Acid Slime (M)":{
-                if(name.equals("Acid Slime (L)") && hp < 0.5 * maxHP){
-                    builder.append("Dies and spawn 2 Acid Slimes (M).");
-                    break;
+                if(name.equals("Acid Slime (L)")){
+                    builder.append("At 50% or less, it dies and\nspawn 2 Acid Slimes (M).\n");
                 }
                 probability = Math.random();
-                if(probability < 0.45){
+                //Corrosive Spit
+                if(probability < 0.3){
                     builder.append("Deal ")
-                            .append(damage - (name.equals("Acid Slime (L)")?5:3))
+                            .append((damage - (name.equals("Acid Slime (L)")?5:3)
+                                    + Utility.nvl(effects.get("Strength"), 0)) *
+                                    (effects.get("Weak") == null ? 1 : 0.75))
                             .append(" damage.\nShuffles ")
                             .append(name.equals("Acid Slime (L)")?2:1)
                             .append(" Slimed into the\ndiscard pile.\n");
                     break;
                 }
+                if(probability < 0.6){
+                    builder.append("Inflicts ")
+                            .append((name.equals("Acid Slime (L)"))?2:1)
+                            .append(" weak.");
+                    break;
+                }
                 builder.append("Deal ")
-                        .append(damage)
+                        .append((damage + Utility.nvl(effects.get("Strength"), 0)) *
+                                (effects.get("Weak") == null ? 1 : 0.75))
                         .append(" damage.\n");
                 break;
             }
         }
-        builder.append("============================\n");
+        //builder.append("============================\n");
         return builder.toString();
     }
 
@@ -125,13 +173,33 @@ public class Enemy extends Entity {
         lines.add(border);
         lines.add(centeredName);
         lines.add(border);
-        lines.add(String.format("  ❤ HP    : %-14s", hp));
+        StringBuilder hpLine = new StringBuilder(String.format("  ❤ HP    : %s / %s", hp, maxHP));
+        lines.add(hpLine.append(String.format("%-"+(border.length() - hpLine.length())+"s", "")).toString());
         if (defense > 0) {
             lines.add(String.format("  ⛊ Defense : %-14s", defense));
         } else {
-            lines.add(String.format("  %-24s", "")); // blank line for alignment
+            lines.add(String.format("%-28s", "")); // blank line for alignment
         }
-        lines.add(border);
+        if(!effects.isEmpty()){
+            lines.add(String.format("%-28s","Effects:"));
+            for(String i : effects.keySet()){
+                StringBuilder effect = new StringBuilder(i + " : " + effects.get(i));
+                lines.add(String.format("%-28s", effect));
+                /*effect = switch(i){
+                    case "Vulnerable" -> new StringBuilder("(take 50% more damage)");
+                    case "Weak" -> new StringBuilder("(deal 25% less damage)");
+                    case "Ritual" -> {
+                        lines.add(String.format("%-28s", "(at the end of the turn gain"));
+                        yield new StringBuilder(effects.get(i) + " strength)");
+                    }
+                    case "Strength" -> new StringBuilder("(deal +" + effects.get(i) + " damage)");
+                    default -> new StringBuilder("(no effect)");
+                };
+                lines.add(String.format("%-28s", effect));*/
+            }
+        }
+
+        //lines.add(border);
         return lines;
     }
 
@@ -167,7 +235,7 @@ public class Enemy extends Entity {
     public void play(int turn, Player p){
         switch(name){
             case "Cultist":
-                Cultist(p);
+                Cultist(turn, p);
                 break;
             case "Jaw Worm":
                 JawWorm(turn, p);
