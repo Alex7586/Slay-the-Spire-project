@@ -24,7 +24,11 @@ This project aims to replicate the fundamental combat experience of *Slay the Sp
   - Application of status effects with duration tracking.
 
 - **Status Effects**: 
-  - Implementation of Strength (increases damage) and Vulnerable (increases damage taken).
+  - Implementation of
+    - Strength (increases damage)
+    - Vulnerable (increases damage taken)
+    - Weak (decrease damage)
+    - Ritual (gain strength).
 
 
 
